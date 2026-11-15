@@ -12,13 +12,13 @@ const experiences = [
   },
   {
     period: "May 2026 — Present",
-    role: "Java Full Stack",
+    role: "Java Full Stack with Cloud & GenAI",
     company: "AAM Infotech",
     type: "Internship",
     location: "Gurugram, Haryana, India · Hybrid",
     description:
       "Currently developing practical knowledge of Java Full Stack technologies through internship experience.",
-    technologies: ["Java", "Hibernate"],
+    technologies: ["Java", "Full Stack Development", "Cloud", "Generative AI"],
   },
   {
     period: "10 July 2025 — 25 August 2025",

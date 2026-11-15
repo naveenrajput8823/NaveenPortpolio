@@ -3,212 +3,403 @@
 
 import { useState } from "react";
 
+const EMAIL = "naveenrajput7686@gmail.com";
+const WHATSAPP = "https://wa.me/919518657342";
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+const SERVICES = [
+  "Full Stack Web App",
+  "Business Website",
+  "Backend / REST API",
+  "Other",
+];
+
+const BUDGETS = [
+  "Not decided",
+  "Under ₹10,000",
+  "₹10,000 – ₹50,000",
+  "₹50,000+",
+];
+
+const field =
+  "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder:text-gray-500 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/10";
+
+type FormStatus = "idle" | "sending" | "done" | "error";
+
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
+  const [status, setStatus] = useState<FormStatus>("idle");
+  const [statusMessage, setStatusMessage] = useState("");
 
-  const [status, setStatus] = useState("");
+  function validateForm(data: Record<string, string>) {
+    const name = data.name?.trim() ?? "";
+    const email = data.email?.trim() ?? "";
+    const phone = data.phone?.trim() ?? "";
+    const message = data.message?.trim() ?? "";
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+    // Name: letters, spaces, apostrophes, dots and hyphens only.
+    const namePattern =
+      /^[\p{L}\p{M}][\p{L}\p{M}\s.'’-]{1,59}$/u;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (name.length < 2 || name.length > 60 || !namePattern.test(name)) {
+      return "Please enter a valid name using 2–60 characters. Numbers and special symbols are not allowed.";
+    }
+
+    // Basic email format validation.
+    const emailPattern =
+      /^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+
+    if (
+      email.length > 254 ||
+      !emailPattern.test(email) ||
+      email.split("@")[1]?.split(".").some(
+        (part) => !part || part.startsWith("-") || part.endsWith("-")
+      )
+    ) {
+      return "Please enter a valid email address.";
+    }
+
+    // Phone is optional, but must be valid if provided.
+    if (phone) {
+      const phonePattern = /^\+?[0-9\s()-]+$/;
+      const digits = phone.replace(/\D/g, "");
+
+      if (
+        !phonePattern.test(phone) ||
+        digits.length < 7 ||
+        digits.length > 15
+      ) {
+        return "Please enter a valid phone number, including country code if applicable.";
+      }
+    }
+
+    if (message.length < 20) {
+      return "Please provide more details about your project (at least 20 characters).";
+    }
+
+    if (message.length > 2000) {
+      return "Your message must not exceed 2,000 characters.";
+    }
+
+    if (!SERVICES.includes(data.service)) {
+      return "Please select a valid service.";
+    }
+
+    if (!BUDGETS.includes(data.budget)) {
+      return "Please select a valid project budget.";
+    }
+
+    return null;
+  }
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    setStatus("Your message is ready. Backend integration is pending.");
+    if (status === "sending") return;
 
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
-  };
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const data = Object.fromEntries(
+      formData.entries()
+    ) as Record<string, string>;
+
+    // Honeypot: silently reject basic automated submissions.
+    if (data.website?.trim()) {
+      form.reset();
+      setStatus("done");
+      setStatusMessage(
+        "Thank you. Your inquiry has been received."
+      );
+      return;
+    }
+
+    // Validate before making any request.
+    const validationError = validateForm(data);
+
+    if (validationError) {
+      setStatus("idle");
+      setStatusMessage(validationError);
+      return;
+    }
+
+    // Normalize user input.
+    const name = data.name.trim().replace(/\s+/g, " ");
+    const email = data.email.trim().toLowerCase();
+    const phone = data.phone.trim();
+    const message = data.message.trim();
+    const service = data.service;
+    const budget = data.budget;
+
+    const projectMessage = `[${service}]\n${message}`;
+
+    setStatus("sending");
+    setStatusMessage("");
+
+    const controller = new AbortController();
+
+    const timeout = window.setTimeout(() => {
+      controller.abort();
+    }, 10000);
+
+    try {
+      if (!API) {
+        throw new Error("API URL is not configured.");
+      }
+
+      const apiUrl = `${API.replace(/\/+$/, "")}/inquiries`;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          budget,
+          service,
+          message: projectMessage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to submit inquiry.");
+      }
+
+      setStatus("done");
+      setStatusMessage(
+        "Thank you for your inquiry! Your message has been received. I will get back to you shortly."
+      );
+
+      form.reset();
+    } catch {
+      // Open the visitor's email application as a fallback.
+      const emailBody = encodeURIComponent(
+        `Name: ${name}\nEmail: ${email}\nPhone: ${phone || "Not provided"}\nBudget: ${budget}\nService: ${service}\n\nProject Details:\n${message}`
+      );
+
+      const subject = encodeURIComponent(
+        `Project Inquiry from ${name}`
+      );
+
+      window.location.href =
+        `mailto:${EMAIL}?subject=${subject}&body=${emailBody}`;
+
+      setStatus("error");
+      setStatusMessage(
+        "We could not connect to the server. Your email application has been opened with your inquiry details. Please review and send the email."
+      );
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
 
   return (
     <section
       id="contact"
-      className="relative overflow-hidden bg-[#080b14] px-6 py-24 text-white sm:px-10 lg:px-16"
+      className="relative overflow-hidden border-t border-white/10 bg-[#0a0f1c] px-6 py-24 text-white sm:px-10 lg:px-16"
     >
-      <div className="pointer-events-none absolute -left-32 top-20 h-80 w-80 rounded-full bg-indigo-600/10 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-purple-600/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -left-32 top-20 h-80 w-80 rounded-full bg-sky-600/10 blur-[120px]" />
 
-      <div className="relative mx-auto max-w-7xl">
-        <div className="mb-16 text-center">
-          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-400">
-            Get In Touch
+      <div className="relative mx-auto max-w-6xl">
+        {/* Heading */}
+        <div className="mb-14 max-w-2xl">
+          <span className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">
+            Get in Touch
           </span>
 
-          <h2 className="mt-4 text-3xl font-bold sm:text-4xl md:text-5xl">
-            Let&apos;s Work <span className="text-indigo-400">Together</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+            Let&apos;s Build Your Project{" "}
+            <span className="text-sky-300">Together.</span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">
-            Have a project in mind or looking for a developer? Feel free to
-            contact me. I&apos;d love to discuss your ideas and work together.
+          <p className="mt-5 leading-8 text-gray-400">
+            Share your project requirements, goals, and expectations.
+            I typically respond within 24 hours, and the initial
+            consultation is completely free.
           </p>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
           {/* Contact Information */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 sm:p-10">
-            <h3 className="text-2xl font-semibold">Let&apos;s Connect</h3>
-
-            <p className="mt-4 leading-7 text-gray-400">
-              I&apos;m open to Java Full Stack Developer opportunities,
-              freelance projects and collaboration.
-            </p>
-
-            <div className="mt-10 space-y-7">
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <a
-                  href="mailto:your-email@example.com"
-                  className="mt-2 inline-block text-base text-white transition hover:text-indigo-400"
-                >
-                  your-email@example.com
-                </a>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Location</p>
-                <p className="mt-2 text-base text-white">India</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Availability</p>
-                <p className="mt-2 inline-flex items-center gap-2 text-sm text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Open to Opportunities
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 border-t border-white/10 pt-8">
-              <p className="mb-5 text-sm font-medium text-gray-400">
-                Connect with me
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href="https://www.linkedin.com/in/naveen-tanwar-422325251/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-indigo-400 hover:text-indigo-400"
-                >
-                  LinkedIn ↗
-                </a>
-
-                <a
-                  href="https://www.instagram.com/_naveen_tanwar__/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-indigo-400 hover:text-indigo-400"
-                >
-                  Instagram ↗
-                </a>
-
-                <a
-                  href="https://stackoverflow.com/users/33113943/naveen"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-indigo-400 hover:text-indigo-400"
-                >
-                  Stack Overflow ↗
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 sm:p-10">
-            <h3 className="text-2xl font-semibold">Send Me a Message</h3>
-
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-              <div>
-                <label className="mb-2 block text-sm text-gray-300">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter your name"
-                  className="w-full rounded-lg border border-white/10 bg-[#080b14] px-4 py-3 text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-gray-300">
-                  Your Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  className="w-full rounded-lg border border-white/10 bg-[#080b14] px-4 py-3 text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-gray-300">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  required
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="Enter subject"
-                  className="w-full rounded-lg border border-white/10 bg-[#080b14] px-4 py-3 text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-gray-300">
-                  Message
-                </label>
-                <textarea
-                  name="message"
-                  required
-                  rows={5}
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Write your message..."
-                  className="w-full resize-none rounded-lg border border-white/10 bg-[#080b14] px-4 py-3 text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-indigo-500 px-6 py-4 font-semibold text-white transition hover:bg-indigo-400"
+          <div className="space-y-4">
+            {[
+              {
+                label: "Email",
+                value: EMAIL,
+                href: `mailto:${EMAIL}`,
+              },
+              {
+                label: "WhatsApp",
+                value: "+91 95186 57342",
+                href: WHATSAPP,
+              },
+              {
+                label: "LinkedIn",
+                value: "linkedin.com/in/naveen-tanwar-422325251",
+                href: "https://www.linkedin.com/in/naveen-tanwar-422325251/",
+              },
+            ].map((contact) => (
+              <a
+                key={contact.label}
+                href={contact.href}
+                target={
+                  contact.label === "Email" ? undefined : "_blank"
+                }
+                rel={
+                  contact.label === "Email"
+                    ? undefined
+                    : "noopener noreferrer"
+                }
+                className="block rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition hover:border-sky-400/50"
               >
-                Send Message →
-              </button>
-
-              {status && (
-                <p className="text-center text-sm text-amber-400">
-                  {status}
+                <p className="text-xs uppercase tracking-wider text-gray-500">
+                  {contact.label}
                 </p>
-              )}
-            </form>
+
+                <p className="mt-2 break-all text-white">
+                  {contact.value}
+                </p>
+              </a>
+            ))}
+
+            <p className="flex items-center gap-2 pt-2 text-sm text-gray-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Available for Freelance and Remote Opportunities
+            </p>
           </div>
+
+          {/* Secure Contact Form */}
+          <form
+            onSubmit={submit}
+            className="relative grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8"
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                name="name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={60}
+                autoComplete="name"
+                placeholder="Your Full Name"
+                aria-label="Your Full Name"
+                className={field}
+              />
+
+              <input
+                name="email"
+                type="email"
+                required
+                maxLength={254}
+                autoComplete="email"
+                placeholder="Your Email Address"
+                aria-label="Your Email Address"
+                className={field}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                name="phone"
+                type="tel"
+                maxLength={20}
+                autoComplete="tel"
+                placeholder="Phone / WhatsApp (Optional)"
+                aria-label="Phone or WhatsApp Number"
+                className={field}
+              />
+
+              <select
+                name="budget"
+                aria-label="Project Budget"
+                className={field}
+                defaultValue="Not decided"
+              >
+                {BUDGETS.map((budget) => (
+                  <option key={budget} value={budget} className="text-black">
+                    {budget}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <select
+              name="service"
+              aria-label="Service Required"
+              className={field}
+              defaultValue="Full Stack Web App"
+            >
+              {SERVICES.map((service) => (
+                <option key={service} value={service} className="text-black">
+                  {service}
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              name="message"
+              required
+              minLength={20}
+              maxLength={2000}
+              rows={5}
+              aria-label="Project Details"
+              placeholder="Describe your project, key requirements, expected features, and timeline..."
+              className={field}
+            />
+
+            {/* Honeypot: hidden from genuine visitors */}
+            <div
+              aria-hidden="true"
+              className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
+            >
+              <label htmlFor="contact-website">
+                Leave this field empty
+              </label>
+
+              <input
+                id="contact-website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="rounded-xl bg-sky-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {status === "sending"
+                ? "Submitting Your Inquiry..."
+                : "Send Project Inquiry ↗"}
+            </button>
+
+            {/* Submission feedback */}
+            {statusMessage && (
+              <p
+                role="status"
+                aria-live="polite"
+                className={`text-sm leading-6 ${
+                  status === "done"
+                    ? "text-emerald-400"
+                    : status === "error"
+                      ? "text-amber-300"
+                      : "text-rose-400"
+                }`}
+              >
+                {statusMessage}
+              </p>
+            )}
+
+            <p className="text-xs leading-5 text-gray-500">
+              Your contact information will only be used to respond
+              to your project inquiry.
+            </p>
+          </form>
         </div>
       </div>
     </section>

@@ -19,7 +19,7 @@ const services = [
     title: "Frontend Development",
     description:
       "Creating clean, responsive and user-friendly website interfaces that work across desktop and mobile devices.",
-    technologies: ["HTML", "CSS", "JavaScript", "React"],
+    technologies: ["HTML", "CSS", "JavaScript", "React", "Next.js"],
   },
 ];
 
@@ -85,7 +85,7 @@ export default function Services() {
 
           <a
             href="/contact"
-            className="rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-accent"
+            className="rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-background transition-colors hover:bg-accent"
           >
             Let&apos;s Discuss Your Project ↗
           </a>

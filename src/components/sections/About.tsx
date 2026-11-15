@@ -41,7 +41,7 @@ export default function About() {
 
           <div>
             <p className="text-xl leading-9 text-foreground">
-              I&apos;m Naveen Rajput, a Java Full Stack Developer with a
+              I&apos;m Naveen Tanwar, a Java Full Stack Developer with a
               background in Computer Science and Engineering.
             </p>
 

@@ -4,25 +4,25 @@ const skillGroups = [
     number: "01",
     title: "Frontend Development",
     description: "Building responsive and interactive user interfaces.",
-    skills: ["HTML5", "CSS3", "JavaScript", "React.js", "Next.js", "Tailwind CSS"],
+    skills: ["HTML", "CSS", "JavaScript", "React.js", "Next.js", "Tailwind CSS", "Bootstrap"],
   },
   {
     number: "02",
     title: "Backend Development",
     description: "Developing application logic and RESTful APIs.",
-    skills: ["Java", "Core Java", "Spring Boot", "Hibernate", "Spring Data JPA"],
+    skills: ["Java", "Core Java", "Spring Boot", "Hibernate", "Spring Data JPA", "REST APIs","Spring Security", "JWT","Spring MVC"],
   },
   {
     number: "03",
     title: "Database Technologies",
     description: "Working with relational and NoSQL databases.",
-    skills: ["MySQL", "PostgreSQL", "MongoDB"],
+    skills: ["MySQL", "PostgreSQL"],
   },
   {
     number: "04",
     title: "Tools & Technologies",
     description: "Development tools and application workflows.",
-    skills: ["Git", "GitHub", "Docker", "Maven", "VS Code", "Postman"],
+    skills: ["Git", "GitHub", "Docker", "Maven", "VS Code", "Postman", "intellij IDEA", "AWS","eclipse IDE","jira", "linux"],
   },
 ];
 
@@ -50,7 +50,7 @@ export default function Skills() {
           {skillGroups.map((group) => (
             <article
               key={group.number}
-              className="border-b border-border py-9 sm:px-8 sm:first:pl-0 sm:nth-[2]:border-l sm:nth-[2]:pr-0"
+              className="border-b border-border py-9 sm:px-8 sm:nth-[odd]:pl-0 sm:nth-[even]:border-l sm:nth-[even]:pr-0"
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm text-accent">{group.number}</span>

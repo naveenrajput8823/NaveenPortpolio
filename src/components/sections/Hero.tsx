@@ -1,68 +1,134 @@
 
 import Link from "next/link";
-import Image from "next/image";
+import HeroVisual from "./HeroVisual";
+import CountUp from "@/components/ui/CountUp";
+
+const stats = [
+  { value: 3, suffix: "", label: "Internships" },
+  { value: 5, suffix: "+", label: "Projects Built" },
+  { value: 10, suffix: "", label: "Certifications" },
+];
+
+const stack = ["Java", "Spring Boot", "React", "Next.js", "PostgreSQL"];
+
+const d = (ms: number) =>
+  ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 export default function Hero() {
   return (
-    <section className="container-width flex min-h-[calc(100vh-80px)] items-center py-20">
-      <div className="grid w-full items-center gap-16 md:grid-cols-[1.3fr_0.7fr]">
-        <div>
-          <p className="mb-6 flex items-center gap-3 text-sm font-medium text-accent">
-            <span className="h-px w-8 bg-accent" />
-            JAVA FULL STACK DEVELOPER
-          </p>
+    <section id="home" className="relative overflow-hidden">
+      <div className="grid-bg pointer-events-none absolute inset-0 opacity-60" />
 
-          <h1 className="max-w-3xl text-5xl font-semibold leading-[1.12] tracking-tight sm:text-6xl lg:text-7xl">
-            Building digital
-            <br />
-            products that
-            <br />
-            <span className="text-accent">solve real problems.</span>
-          </h1>
+      <div className="container-width relative flex min-h-[calc(100vh-64px)] items-center py-8 sm:py-10 lg:py-12">
+        <div className="grid w-full items-center gap-10 md:grid-cols-[1.15fr_0.85fr] lg:gap-12">
 
-          <p className="mt-8 max-w-xl text-base leading-8 text-muted sm:text-lg">
-            I&apos;m Naveen Rajput, a Java Full Stack Developer focused on
-            building modern web applications using Java, Spring Boot,
-            React and Next.js.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Link
-              href="/projects"
-              className="rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-accent"
+          {/* Hero Content */}
+          <div>
+            <p
+              className="fade-up inline-flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted"
+              style={d(0)}
             >
-              Explore My Work <span aria-hidden="true">↗</span>
-            </Link>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+              Available for Freelance Projects
+            </p>
 
-            <Link
-              href="/contact"
-              className="rounded-full border border-border px-7 py-3.5 text-sm font-medium transition-colors hover:border-foreground"
+            <h1
+              className="fade-up mt-5 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl"
+              style={d(100)}
             >
-              Get In Touch
-            </Link>
+              Building Digital Products That{" "}
+              <span className="text-accent">
+                Solve Real Problems.
+              </span>
+            </h1>
+
+            <p
+              className="fade-up mt-5 max-w-xl text-base leading-7 text-muted sm:text-lg sm:leading-8"
+              style={d(220)}
+            >
+              I&apos;m Naveen Tanwar, a Java Full Stack Developer. I design
+              and build fast, secure, and scalable web applications using
+              Java, Spring Boot, React, and Next.js, from initial concept
+              to deployment.
+            </p>
+
+            {/* Action Buttons */}
+            <div
+              className="fade-up mt-7 flex flex-wrap items-center gap-3"
+              style={d(340)}
+            >
+              <Link
+                href="/#contact"
+                className="group rounded-full bg-accent px-6 py-3 text-sm font-semibold text-background shadow-lg shadow-accent/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-accent/30"
+              >
+                Hire Me{" "}
+                <span
+                  aria-hidden="true"
+                  className="inline-block transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                >
+                  ↗
+                </span>
+              </Link>
+
+              <Link
+                href="/#projects"
+                className="rounded-full border border-border px-6 py-3 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 hover:border-accent hover:text-accent"
+              >
+                View Projects
+              </Link>
+
+              <a
+                href="resume/Naveen_CV.pdf"
+                download
+                className="text-sm font-semibold text-muted underline-offset-4 transition hover:text-accent hover:underline"
+              >
+                Download CV ↓
+              </a>
+            </div>
+
+            {/* Technology Stack */}
+            <div
+              className="fade-up mt-7 flex flex-wrap gap-2"
+              style={d(450)}
+            >
+              {stack.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-accent-soft px-3.5 py-1.5 text-xs font-medium text-accent"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+
+            {/* Professional Stats */}
+            <dl
+              className="fade-up mt-7 grid max-w-md grid-cols-3 gap-5 border-t border-border pt-6"
+              style={d(560)}
+            >
+              {stats.map((s) => (
+                <div key={s.label}>
+                  <dt className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <CountUp value={s.value} suffix={s.suffix} />
+                  </dt>
+
+                  <dd className="mt-1 text-xs text-muted">
+                    {s.label}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
 
-          <div className="mt-14 flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted">
-            <span>Java & Spring Boot</span>
-            <span>React & Next.js</span>
-            <span>Database & APIs</span>
+          {/* Hero Visual */}
+          <div className="fade-up" style={d(250)}>
+            <HeroVisual />
           </div>
+
         </div>
-
-<div className="relative mx-auto w-full max-w-[360px]">
-  <div className="relative aspect-[4/5] overflow-hidden border border-border bg-[#eeefec]">
-    <Image
-      src="/images/profile/profile.png"
-      alt="Naveen Rajput - Java Full Stack Developer"
-      fill
-      priority
-      sizes="(max-width: 768px) 90vw, 360px"
-      className="object-cover object-center"
-    />
-  </div>
-
-  <div className="absolute -bottom-5 -left-5 -z-10 h-full w-full border border-accent/30" />
-</div>
       </div>
     </section>
   );
