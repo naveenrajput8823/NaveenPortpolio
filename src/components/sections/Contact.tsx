@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-const EMAIL = "naveenrajput7686@gmail.com";
+const EMAIL = "tanwarnaveen522@gmail.com";
 const WHATSAPP = "https://wa.me/919518657342";
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -38,7 +38,7 @@ export default function Contact() {
 
     // Name: letters, spaces, apostrophes, dots and hyphens only.
     const namePattern =
-      /^[\p{L}\p{M}][\p{L}\p{M}\s.'’-]{1,59}$/u;
+      /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]{1,59}$/u;
 
     if (name.length < 2 || name.length > 60 || !namePattern.test(name)) {
       return "Please enter a valid name using 2–60 characters. Numbers and special symbols are not allowed.";
@@ -49,7 +49,7 @@ export default function Contact() {
       /^(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
 
     if (
-      email.length > 254 ||
+      email.length > 150 ||
       !emailPattern.test(email) ||
       email.split("@")[1]?.split(".").some(
         (part) => !part || part.startsWith("-") || part.endsWith("-")
@@ -161,6 +161,7 @@ export default function Contact() {
           budget,
           service,
           message: projectMessage,
+          website: data.website?.trim() ?? "",
         }),
       });
 
@@ -174,23 +175,21 @@ export default function Contact() {
       );
 
       form.reset();
-    } catch {
-      // Open the visitor's email application as a fallback.
-      const emailBody = encodeURIComponent(
-        `Name: ${name}\nEmail: ${email}\nPhone: ${phone || "Not provided"}\nBudget: ${budget}\nService: ${service}\n\nProject Details:\n${message}`
-      );
-
-      const subject = encodeURIComponent(
-        `Project Inquiry from ${name}`
-      );
-
-      window.location.href =
-        `mailto:${EMAIL}?subject=${subject}&body=${emailBody}`;
+    }
+    catch (error) {
+      console.error("Contact form submission failed:", error);
 
       setStatus("error");
-      setStatusMessage(
-        "We could not connect to the server. Your email application has been opened with your inquiry details. Please review and send the email."
-      );
+
+      if (error instanceof Error && error.name === "AbortError") {
+        setStatusMessage(
+          "Request timed out. Please try again."
+        );
+      } else {
+        setStatusMessage(
+          "Unable to submit your inquiry. Please try again or contact me directly at tanwarnaveen522@gmail.com."
+        );
+      }
     } finally {
       window.clearTimeout(timeout);
     }
@@ -293,7 +292,7 @@ export default function Contact() {
                 name="email"
                 type="email"
                 required
-                maxLength={254}
+                maxLength={150}
                 autoComplete="email"
                 placeholder="Your Email Address"
                 aria-label="Your Email Address"
@@ -383,13 +382,12 @@ export default function Contact() {
               <p
                 role="status"
                 aria-live="polite"
-                className={`text-sm leading-6 ${
-                  status === "done"
+                className={`text-sm leading-6 ${status === "done"
                     ? "text-emerald-400"
                     : status === "error"
                       ? "text-amber-300"
                       : "text-rose-400"
-                }`}
+                  }`}
               >
                 {statusMessage}
               </p>

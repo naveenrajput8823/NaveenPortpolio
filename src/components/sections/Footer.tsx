@@ -1,6 +1,6 @@
 const currentYear = new Date().getFullYear();
 
-const CONTACT_EMAIL = "naveenrajput7686@gmail.com";
+const CONTACT_EMAIL = "tanwarnaveen522@gmail.com";
 const WHATSAPP_URL = "https://wa.me/919518657342";
 
 const quickLinks = [
