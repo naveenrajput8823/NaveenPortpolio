@@ -2,10 +2,10 @@
 "use client";
 
 import { useState } from "react";
+import emailjs from "@emailjs/browser";
 
 const EMAIL = "tanwarnaveen522@gmail.com";
 const WHATSAPP = "https://wa.me/919518657342";
-const API = process.env.NEXT_PUBLIC_API_URL;
 
 const SERVICES = [
   "Full Stack Web App",
@@ -91,109 +91,87 @@ export default function Contact() {
     return null;
   }
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+ 
+async function submit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
 
-    if (status === "sending") return;
+  if (status === "sending") return;
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+  const form = e.currentTarget;
+  const formData = new FormData(form);
 
-    const data = Object.fromEntries(
-      formData.entries()
-    ) as Record<string, string>;
+  const data = Object.fromEntries(
+    formData.entries()
+  ) as Record<string, string>;
 
-    // Honeypot: silently reject basic automated submissions.
-    if (data.website?.trim()) {
-      form.reset();
-      setStatus("done");
-      setStatusMessage(
-        "Thank you. Your inquiry has been received."
-      );
-      return;
-    }
-
-    // Validate before making any request.
-    const validationError = validateForm(data);
-
-    if (validationError) {
-      setStatus("idle");
-      setStatusMessage(validationError);
-      return;
-    }
-
-    // Normalize user input.
-    const name = data.name.trim().replace(/\s+/g, " ");
-    const email = data.email.trim().toLowerCase();
-    const phone = data.phone.trim();
-    const message = data.message.trim();
-    const service = data.service;
-    const budget = data.budget;
-
-    const projectMessage = `[${service}]\n${message}`;
-
-    setStatus("sending");
-    setStatusMessage("");
-
-    const controller = new AbortController();
-
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, 10000);
-
-    try {
-      if (!API) {
-        throw new Error("API URL is not configured.");
-      }
-
-      const apiUrl = `${API.replace(/\/+$/, "")}/inquiries`;
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        signal: controller.signal,
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          budget,
-          service,
-          message: projectMessage,
-          website: data.website?.trim() ?? "",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to submit inquiry.");
-      }
-
-      setStatus("done");
-      setStatusMessage(
-        "Thank you for your inquiry! Your message has been received. I will get back to you shortly."
-      );
-
-      form.reset();
-    }
-    catch (error) {
-      console.error("Contact form submission failed:", error);
-
-      setStatus("error");
-
-      if (error instanceof Error && error.name === "AbortError") {
-        setStatusMessage(
-          "Request timed out. Please try again."
-        );
-      } else {
-        setStatusMessage(
-          "Unable to submit your inquiry. Please try again or contact me directly at tanwarnaveen522@gmail.com."
-        );
-      }
-    } finally {
-      window.clearTimeout(timeout);
-    }
+  // Honeypot protection
+  if (data.website?.trim()) {
+    form.reset();
+    setStatus("done");
+    setStatusMessage("Thank you. Your inquiry has been received.");
+    return;
   }
+
+  // Validation
+  const validationError = validateForm(data);
+
+  if (validationError) {
+    setStatus("idle");
+    setStatusMessage(validationError);
+    return;
+  }
+
+  // Normalize input
+  const name = data.name.trim().replace(/\s+/g, " ");
+  const email = data.email.trim().toLowerCase();
+  const phone = data.phone.trim();
+  const message = data.message.trim();
+  const service = data.service;
+  const budget = data.budget;
+
+  // EmailJS configuration
+  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+  setStatus("sending");
+  setStatusMessage("");
+
+  try {
+    if (!serviceId || !templateId || !publicKey) {
+      throw new Error("EmailJS configuration is missing.");
+    }
+
+    await emailjs.send(
+      serviceId,
+      templateId,
+      {
+        name,
+        email,
+        phone: phone || "Not provided",
+        service,
+        budget,
+        message,
+      },
+      publicKey
+    );
+
+    setStatus("done");
+    setStatusMessage(
+      "Thank you for your inquiry! Your message has been received. I will get back to you shortly."
+    );
+
+    form.reset();
+  } catch (error) {
+    console.error("Contact form submission failed:", error);
+
+    setStatus("error");
+    setStatusMessage(
+      "Unable to submit your inquiry. Please try again or contact me directly at tanwarnaveen522@gmail.com."
+    );
+  }
+}
+
 
   return (
     <section
