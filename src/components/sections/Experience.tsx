@@ -7,8 +7,9 @@ const experiences = [
     type: "Internship",
     location: "Remote",
     description:
-      "Currently working in a Java Full Stack development role, gaining practical experience in software development.",
+      "Building practical experience in Java Full Stack development, strengthening software development fundamentals and expanding knowledge of modern application development.",
     technologies: ["Java", "Full Stack Development"],
+    current: true,
   },
   {
     period: "May 2026 — Present",
@@ -17,8 +18,14 @@ const experiences = [
     type: "Internship",
     location: "Gurugram, Haryana, India · Hybrid",
     description:
-      "Currently developing practical knowledge of Java Full Stack technologies through internship experience.",
-    technologies: ["Java", "Full Stack Development", "Cloud", "Generative AI"],
+      "Expanding technical knowledge through practical exposure to Java Full Stack development, cloud technologies, and Generative AI concepts.",
+    technologies: [
+      "Java",
+      "Full Stack Development",
+      "Cloud",
+      "Generative AI",
+    ],
+    current: true,
   },
   {
     period: "10 July 2025 — 25 August 2025",
@@ -27,8 +34,9 @@ const experiences = [
     type: "Internship",
     location: "India",
     description:
-      "Gained practical exposure to full stack web development through hands-on learning and project-based work.",
+      "Developed foundational full stack web development skills through hands-on learning and project-based practice using core frontend technologies.",
     technologies: ["HTML", "CSS", "JavaScript", "Web Development"],
+    current: false,
   },
 ];
 
@@ -46,8 +54,8 @@ export default function Experience() {
           </h2>
 
           <p className="mt-6 leading-8 text-muted">
-            My internships, professional experience and continuous growth
-            in software development.
+            Building real-world experience through internships, continuous
+            learning, and hands-on software development.
           </p>
         </div>
 
@@ -61,15 +69,28 @@ export default function Experience() {
                 <p className="text-sm font-medium text-accent">
                   {item.period}
                 </p>
-                <p className="mt-3 text-sm text-muted">{item.location}</p>
+
+                <p className="mt-3 text-sm text-muted">
+                  {item.location}
+                </p>
               </div>
 
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-xl font-semibold">{item.role}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {item.role}
+                  </h3>
+
                   <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
                     {item.type}
                   </span>
+
+                  {item.current && (
+                    <span className="flex items-center gap-2 rounded-full border border-accent/30 px-3 py-1 text-xs text-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      Ongoing
+                    </span>
+                  )}
                 </div>
 
                 <p className="mt-2 font-medium text-muted">

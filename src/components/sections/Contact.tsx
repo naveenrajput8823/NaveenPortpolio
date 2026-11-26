@@ -7,12 +7,17 @@ import emailjs from "@emailjs/browser";
 const EMAIL = "tanwarnaveen522@gmail.com";
 const WHATSAPP = "https://wa.me/919518657342";
 
+
 const SERVICES = [
   "Full Stack Web App",
-  "Business Website",
-  "Backend / REST API",
+  "Java Backend / REST API",
+  "Frontend Website",
+  "AI Integration",
+  "E-Commerce Development",
+  "Microservices Development",
   "Other",
 ];
+
 
 const BUDGETS = [
   "Not decided",
@@ -91,86 +96,86 @@ export default function Contact() {
     return null;
   }
 
- 
-async function submit(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault();
 
-  if (status === "sending") return;
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  const form = e.currentTarget;
-  const formData = new FormData(form);
+    if (status === "sending") return;
 
-  const data = Object.fromEntries(
-    formData.entries()
-  ) as Record<string, string>;
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-  // Honeypot protection
-  if (data.website?.trim()) {
-    form.reset();
-    setStatus("done");
-    setStatusMessage("Thank you. Your inquiry has been received.");
-    return;
-  }
+    const data = Object.fromEntries(
+      formData.entries()
+    ) as Record<string, string>;
 
-  // Validation
-  const validationError = validateForm(data);
-
-  if (validationError) {
-    setStatus("idle");
-    setStatusMessage(validationError);
-    return;
-  }
-
-  // Normalize input
-  const name = data.name.trim().replace(/\s+/g, " ");
-  const email = data.email.trim().toLowerCase();
-  const phone = data.phone.trim();
-  const message = data.message.trim();
-  const service = data.service;
-  const budget = data.budget;
-
-  // EmailJS configuration
-  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-
-  setStatus("sending");
-  setStatusMessage("");
-
-  try {
-    if (!serviceId || !templateId || !publicKey) {
-      throw new Error("EmailJS configuration is missing.");
+    // Honeypot protection
+    if (data.website?.trim()) {
+      form.reset();
+      setStatus("done");
+      setStatusMessage("Thank you. Your inquiry has been received.");
+      return;
     }
 
-    await emailjs.send(
-      serviceId,
-      templateId,
-      {
-        name,
-        email,
-        phone: phone || "Not provided",
-        service,
-        budget,
-        message,
-      },
-      publicKey
-    );
+    // Validation
+    const validationError = validateForm(data);
 
-    setStatus("done");
-    setStatusMessage(
-      "Thank you for your inquiry! Your message has been received. I will get back to you shortly."
-    );
+    if (validationError) {
+      setStatus("idle");
+      setStatusMessage(validationError);
+      return;
+    }
 
-    form.reset();
-  } catch (error) {
-    console.error("Contact form submission failed:", error);
+    // Normalize input
+    const name = data.name.trim().replace(/\s+/g, " ");
+    const email = data.email.trim().toLowerCase();
+    const phone = data.phone.trim();
+    const message = data.message.trim();
+    const service = data.service;
+    const budget = data.budget;
 
-    setStatus("error");
-    setStatusMessage(
-      "Unable to submit your inquiry. Please try again or contact me directly at tanwarnaveen522@gmail.com."
-    );
+    // EmailJS configuration
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    setStatus("sending");
+    setStatusMessage("");
+
+    try {
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error("EmailJS configuration is missing.");
+      }
+
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          name,
+          email,
+          phone: phone || "Not provided",
+          service,
+          budget,
+          message,
+        },
+        publicKey
+      );
+
+      setStatus("done");
+      setStatusMessage(
+        "Thank you for your inquiry! Your message has been received. I will get back to you shortly."
+      );
+
+      form.reset();
+    } catch (error) {
+      console.error("Contact form submission failed:", error);
+
+      setStatus("error");
+      setStatusMessage(
+        "Unable to submit your inquiry. Please try again or contact me directly at tanwarnaveen522@gmail.com."
+      );
+    }
   }
-}
 
 
   return (
@@ -253,6 +258,19 @@ async function submit(e: React.FormEvent<HTMLFormElement>) {
             onSubmit={submit}
             className="relative grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8"
           >
+
+            <div className="mb-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
+                Start a Conversation
+              </span>
+              <h3 className="mt-2 text-2xl font-semibold text-white">
+                Tell Me About Your Project
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-gray-400">
+                Fill out the details below. I&apos;ll review your requirements and get
+                back to you with the next steps.
+              </p>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <input
                 name="name"
@@ -348,11 +366,21 @@ async function submit(e: React.FormEvent<HTMLFormElement>) {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-xl bg-sky-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-sky-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-500 hover:to-blue-500 hover:shadow-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
             >
-              {status === "sending"
-                ? "Submitting Your Inquiry..."
-                : "Send Project Inquiry ↗"}
+              {status === "sending" ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Sending Your Inquiry...
+                </>
+              ) : (
+                <>
+                  Send Project Inquiry
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">
+                    ↗
+                  </span>
+                </>
+              )}
             </button>
 
             {/* Submission feedback */}
@@ -361,10 +389,10 @@ async function submit(e: React.FormEvent<HTMLFormElement>) {
                 role="status"
                 aria-live="polite"
                 className={`text-sm leading-6 ${status === "done"
-                    ? "text-emerald-400"
-                    : status === "error"
-                      ? "text-amber-300"
-                      : "text-rose-400"
+                  ? "text-emerald-400"
+                  : status === "error"
+                    ? "text-amber-300"
+                    : "text-rose-400"
                   }`}
               >
                 {statusMessage}
